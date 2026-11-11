@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vehicle_pooling_app/core/constants/app_constants.dart';
+import 'package:vehicle_pooling_app/features/home/screens/home_screen.dart';
 import 'package:vehicle_pooling_app/main.dart';
 
 void main() {
@@ -92,4 +93,88 @@ void main() {
     // Verify back on Login Screen
     expect(find.text('Welcome Back!'), findsOneWidget);
   });
+
+  testWidgets(
+    'Home Dashboard renders all required sections: header, banner, action cards, search, upcoming rides, activity, and bottom nav',
+    (WidgetTester tester) async {
+      // Build MaterialApp displaying HomeScreen directly
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpAndSettle();
+
+      // A. Top Header
+      expect(find.text('Rahul Sharma'), findsOneWidget);
+      expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
+
+      // B. Welcome Section
+      expect(find.text('Your Journey, Shared.'), findsOneWidget);
+      expect(
+        find.text('Travel together, save more and make every journey count.'),
+        findsOneWidget,
+      );
+
+      // C. Two Main Action Cards
+      expect(find.text('Offer a Ride'), findsWidgets);
+      expect(
+        find.text('Have empty seats? Share your journey with others.'),
+        findsOneWidget,
+      );
+      expect(find.text('Find a Ride'), findsWidgets);
+      expect(
+        find.text('Going somewhere? Find people travelling your way.'),
+        findsOneWidget,
+      );
+
+      // D. Quick Search Section
+      expect(find.text('Quick Ride Search'), findsOneWidget);
+      expect(find.text('Search Rides'), findsOneWidget);
+
+      // E. Upcoming Rides Section
+      expect(find.text('Upcoming Rides'), findsOneWidget);
+      expect(find.text('View All'), findsOneWidget);
+      expect(find.text('Koramangala 4th Block'), findsOneWidget);
+      expect(find.text('Electronic City Phase 1'), findsOneWidget);
+
+      // F. Recent Activity Section
+      expect(find.text('Recent Activity'), findsOneWidget);
+      expect(find.text('Ride request accepted'), findsOneWidget);
+      expect(find.text('New ride available'), findsOneWidget);
+      expect(find.text('Booking confirmation'), findsOneWidget);
+
+      // Bottom Navigation Bar tabs
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('My Rides'), findsOneWidget);
+      expect(find.text('Bookings'), findsOneWidget);
+      expect(find.text('Profile'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Home Dashboard bottom navigation switches between tabs correctly',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpAndSettle();
+
+      // Tap 'My Rides' in bottom nav
+      await tester.tap(find.text('My Rides'));
+      await tester.pumpAndSettle();
+      expect(find.text('Offered Rides'), findsOneWidget);
+      expect(find.text('Joined Rides'), findsOneWidget);
+
+      // Tap 'Bookings' in bottom nav
+      await tester.tap(find.text('Bookings'));
+      await tester.pumpAndSettle();
+      expect(find.text('My Bookings'), findsOneWidget);
+
+      // Tap 'Profile' in bottom nav
+      await tester.tap(find.text('Profile'));
+      await tester.pumpAndSettle();
+      expect(find.text('My Profile'), findsOneWidget);
+      expect(find.text('Identity Verified'), findsOneWidget);
+
+      // Tap 'Home' to return to Dashboard
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+      expect(find.text('Your Journey, Shared.'), findsOneWidget);
+    },
+  );
 }

@@ -5,12 +5,17 @@ import '../../../core/constants/app_constants.dart';
 
 /// Screen displaying user profile details and activity statistics.
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final bool isTab;
+
+  const ProfileScreen({super.key, this.isTab = false});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(
+        title: const Text('My Profile'),
+        automaticallyImplyLeading: !isTab,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
         child: Column(
@@ -23,13 +28,13 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppConstants.defaultPadding),
             Text(
-              'Sample Driver / Passenger',
+              'Rahul Sharma',
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              'driver.sample@example.com',
+              'rahul.sharma@example.com',
               style: Theme.of(context).textTheme.bodyMedium
                   ?.copyWith(color: AppColors.textSecondary),
             ),

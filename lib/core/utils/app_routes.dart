@@ -9,6 +9,9 @@ import '../../features/home/screens/home_screen.dart';
 import '../../features/maps/screens/map_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/rides/screens/find_ride_screen.dart';
+import '../../features/rides/screens/my_rides_screen.dart';
+import '../../features/rides/screens/offer_ride_screen.dart';
 import '../../features/rides/screens/rides_screen.dart';
 import '../../features/vehicle/screens/vehicle_screen.dart';
 
@@ -24,6 +27,9 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String vehicles = '/vehicles';
   static const String rides = '/rides';
+  static const String offerRide = '/offer-ride';
+  static const String findRide = '/find-ride';
+  static const String myRides = '/my-rides';
   static const String booking = '/booking';
   static const String map = '/map';
   static const String notifications = '/notifications';
@@ -50,6 +56,21 @@ class AppRoutes {
       case home:
         return MaterialPageRoute(
           builder: (_) => const HomeScreen(),
+          settings: settings,
+        );
+      case offerRide:
+        return MaterialPageRoute(
+          builder: (_) => const OfferRideScreen(),
+          settings: settings,
+        );
+      case findRide:
+        return MaterialPageRoute(
+          builder: (_) => const FindRideScreen(),
+          settings: settings,
+        );
+      case myRides:
+        return MaterialPageRoute(
+          builder: (_) => const MyRidesScreen(),
           settings: settings,
         );
       case profile:

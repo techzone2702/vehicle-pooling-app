@@ -2,171 +2,153 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/utils/app_routes.dart';
-import '../widgets/quick_action_card.dart';
+import '../../booking/screens/booking_screen.dart';
+import '../../profile/screens/profile_screen.dart';
+import '../../rides/screens/my_rides_screen.dart';
+import '../widgets/dashboard_header.dart';
+import '../widgets/main_action_cards.dart';
+import '../widgets/quick_search_card.dart';
+import '../widgets/recent_activity_section.dart';
+import '../widgets/upcoming_rides_section.dart';
+import '../widgets/welcome_banner.dart';
 
-/// Central placeholder home screen presenting the vehicle pooling concept and navigation hub.
-class HomeScreen extends StatelessWidget {
+/// The central Home Dashboard screen featuring a 4-tab bottom navigation bar,
+/// dynamic top header, welcome banner, primary action cards, quick search shortcut,
+/// upcoming rides feed, and recent activity timeline.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  void _onTabSelected(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppConstants.appName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.notifications),
-            tooltip: 'Notifications',
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.profile),
-            tooltip: 'Profile',
-          ),
+      backgroundColor: AppColors.backgroundLight,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          _buildDashboardTab(context),
+          const MyRidesScreen(isTab: true),
+          const BookingScreen(isTab: true),
+          const ProfileScreen(isTab: true),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Banner
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Carpool & Save',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    AppConstants.appTagline,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.rides),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.primary,
-                          ),
-                          icon: const Icon(Icons.search, size: 18),
-                          label: const Text('Find a Ride'),
-                        ),
-                      ),
-                      const SizedBox(width: AppConstants.smallPadding),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.vehicles),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white),
-                          ),
-                          icon: const Icon(Icons.add_circle_outline, size: 18),
-                          label: const Text('Offer Ride'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppConstants.largePadding),
-
-            Text(
-              'Feature Modules',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: AppConstants.smallPadding),
-
-            // Navigation Grid/List of Features
-            QuickActionCard(
-              icon: Icons.directions_car,
-              iconColor: AppColors.primary,
-              backgroundColor: AppColors.primaryLight,
-              title: 'Rides & Search',
-              subtitle: 'Browse available rides or publish a new journey',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.rides),
-            ),
-            const SizedBox(height: AppConstants.smallPadding),
-
-            QuickActionCard(
-              icon: Icons.bookmark_border,
-              iconColor: AppColors.secondary,
-              backgroundColor: AppColors.secondaryLight,
-              title: 'My Bookings',
-              subtitle: 'Check pending join requests and confirmed trips',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.booking),
-            ),
-            const SizedBox(height: AppConstants.smallPadding),
-
-            QuickActionCard(
-              icon: Icons.car_rental,
-              iconColor: AppColors.accent,
-              backgroundColor: const Color(0xFFFFF3E0),
-              title: 'Vehicle Management',
-              subtitle: 'Register and manage your carpooling vehicles',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.vehicles),
-            ),
-            const SizedBox(height: AppConstants.smallPadding),
-
-            QuickActionCard(
-              icon: Icons.map_outlined,
-              iconColor: Colors.deepPurple,
-              backgroundColor: const Color(0xFFEDE7F6),
-              title: 'Maps & Route Tracking',
-              subtitle: 'Google Maps route planning & GPS tracking',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.map),
-            ),
-            const SizedBox(height: AppConstants.smallPadding),
-
-            QuickActionCard(
-              icon: Icons.chat_bubble_outline,
-              iconColor: Colors.teal,
-              backgroundColor: const Color(0xFFE0F2F1),
-              title: 'Ride Chat',
-              subtitle: 'Coordinate pickup points with driver and passengers',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.chat),
-            ),
-            const SizedBox(height: AppConstants.smallPadding),
-
-            QuickActionCard(
-              icon: Icons.lock_outline,
-              iconColor: Colors.blueGrey,
-              backgroundColor: const Color(0xFFECEFF1),
-              title: 'Account Authentication',
-              subtitle: 'User sign in and registration',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.login),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
             ),
           ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: _onTabSelected,
+          backgroundColor: Theme.of(context).cardTheme.color,
+          indicatorColor: AppColors.primaryLight,
+          elevation: 0,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.directions_car_outlined),
+              selectedIcon: Icon(
+                Icons.directions_car_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'My Rides',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.confirmation_number_outlined),
+              selectedIcon: Icon(
+                Icons.confirmation_number_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Bookings',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(
+                Icons.person_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the main Home Dashboard tab view.
+  Widget _buildDashboardTab(BuildContext context) {
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.defaultPadding,
+              vertical: AppConstants.defaultPadding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Header: User Greeting, Avatar, Notification Bell
+                DashboardHeader(
+                  userName: 'Rahul Sharma',
+                  onProfileTap: () => _onTabSelected(3),
+                ),
+
+                const SizedBox(height: AppConstants.defaultPadding),
+
+                // Main Welcome Section
+                const WelcomeBanner(),
+
+                const SizedBox(height: AppConstants.largePadding),
+
+                // Two Main Action Cards: Offer a Ride & Find a Ride
+                const MainActionCards(),
+
+                const SizedBox(height: AppConstants.largePadding),
+
+                // Quick Search Section
+                const QuickSearchCard(),
+
+                const SizedBox(height: AppConstants.largePadding),
+
+                // Upcoming Rides Section
+                UpcomingRidesSection(
+                  onViewAll: () => _onTabSelected(1),
+                  hasRides: true,
+                ),
+
+                const SizedBox(height: AppConstants.largePadding),
+
+                // Recent Activity Section
+                const RecentActivitySection(),
+
+                const SizedBox(height: AppConstants.largePadding),
+              ],
+            ),
+          ),
         ),
       ),
     );

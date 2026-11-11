@@ -6,12 +6,17 @@ import '../../../core/utils/formatters.dart';
 
 /// Screen displaying passenger bookings and joining requests.
 class BookingScreen extends StatelessWidget {
-  const BookingScreen({super.key});
+  final bool isTab;
+
+  const BookingScreen({super.key, this.isTab = false});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Bookings')),
+      appBar: AppBar(
+        title: const Text('My Bookings'),
+        automaticallyImplyLeading: !isTab,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
         children: [
