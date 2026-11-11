@@ -14,6 +14,9 @@ abstract class RideService {
 
 /// Placeholder implementation of [RideService].
 class PlaceholderRideService implements RideService {
+  /// Shared singleton instance for app-wide in-memory persistence.
+  static final PlaceholderRideService instance = PlaceholderRideService();
+
   final List<RideModel> _mockRides = [
     RideModel(
       id: 'ride_101',
@@ -40,7 +43,7 @@ class PlaceholderRideService implements RideService {
 
   @override
   Future<RideModel> createRide(RideModel ride) async {
-    _mockRides.add(ride);
+    _mockRides.insert(0, ride);
     return ride;
   }
 

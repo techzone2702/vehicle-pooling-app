@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vehicle_pooling_app/core/constants/app_constants.dart';
 import 'package:vehicle_pooling_app/features/home/screens/home_screen.dart';
+import 'package:vehicle_pooling_app/features/rides/screens/offer_ride_screen.dart';
 import 'package:vehicle_pooling_app/main.dart';
 
 void main() {
@@ -175,6 +176,113 @@ void main() {
       await tester.tap(find.text('Home'));
       await tester.pumpAndSettle();
       expect(find.text('Your Journey, Shared.'), findsOneWidget);
+    },
+  );
+
+  testWidgets('OfferRideScreen renders form sections, inputs, and controls', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: OfferRideScreen()));
+    await tester.pumpAndSettle();
+
+    // Verify Form Sections
+    expect(find.text('Journey Details'), findsOneWidget);
+    expect(find.text('Ride Information'), findsOneWidget);
+    expect(find.text('Vehicle & Additional Instructions'), findsOneWidget);
+
+    // Verify Form Fields
+    expect(find.text('Leaving From'), findsOneWidget);
+    expect(find.text('Going To'), findsOneWidget);
+    expect(find.text('Departure Date'), findsOneWidget);
+    expect(find.text('Departure Time'), findsOneWidget);
+    expect(find.text('Available Seats'), findsOneWidget);
+    expect(find.text('Price Per Passenger (₹)'), findsOneWidget);
+    expect(find.text('Select Vehicle'), findsOneWidget);
+    expect(find.text('Additional Instructions (Optional)'), findsOneWidget);
+    expect(find.text('Publish Ride'), findsOneWidget);
+  });
+
+  testWidgets(
+    'OfferRideScreen validates empty fields and identical source/destination',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: OfferRideScreen()));
+      await tester.pumpAndSettle();
+
+      // Tap Publish Ride with empty fields
+      final publishFinder = find.widgetWithText(ElevatedButton, 'Publish Ride');
+      await tester.ensureVisible(publishFinder);
+      await tester.tap(publishFinder);
+      await tester.pumpAndSettle();
+
+      // Verify validation errors
+      expect(find.text('Please enter departure location'), findsOneWidget);
+      expect(find.text('Please enter destination'), findsOneWidget);
+      expect(find.text('Please enter price per seat'), findsOneWidget);
+
+      // Enter identical locations
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'Koramangala');
+      await tester.enterText(textFields.at(1), 'Koramangala');
+
+      await tester.ensureVisible(publishFinder);
+      await tester.tap(publishFinder);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Source and destination cannot be identical'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'OfferRideScreen validates positive price and submits ride successfully',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: OfferRideScreen()));
+      await tester.pumpAndSettle();
+
+      final publishFinder = find.widgetWithText(ElevatedButton, 'Publish Ride');
+
+      // Enter valid source and destination
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'Koramangala 5th Block');
+      await tester.enterText(textFields.at(1), 'Electronic City Phase 1');
+
+      // Test negative/zero price
+      await tester.enterText(textFields.at(2), '0');
+      await tester.ensureVisible(publishFinder);
+      await tester.tap(publishFinder);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Price must be a valid positive amount'),
+        findsOneWidget,
+      );
+
+      // Enter valid positive price
+      await tester.enterText(textFields.at(2), '150');
+
+      // Tap increment seats
+      final addSeatFinder = find.byIcon(Icons.add_circle_outline_rounded);
+      await tester.ensureVisible(addSeatFinder);
+      await tester.tap(addSeatFinder);
+      await tester.pumpAndSettle();
+
+      // Submit valid ride
+      await tester.ensureVisible(publishFinder);
+      await tester.tap(publishFinder);
+      await tester.pumpAndSettle();
+
+      // Verify success confirmation dialog appears
+      expect(find.text('Ride Offered Successfully!'), findsOneWidget);
+      expect(
+        find.text(
+          'Your ride has been scheduled and added to your in-memory list.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('View My Rides'), findsOneWidget);
+      expect(find.text('Back to Dashboard'), findsOneWidget);
     },
   );
 }
