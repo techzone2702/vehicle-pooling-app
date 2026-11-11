@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../features/authentication/screens/login_screen.dart';
+import '../../features/authentication/screens/register_screen.dart';
+import '../../features/authentication/screens/welcome_screen.dart';
 import '../../features/booking/screens/booking_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/home/screens/home_screen.dart';
@@ -15,8 +17,10 @@ class AppRoutes {
   AppRoutes._();
 
   // Route Name Constants
-  static const String home = '/';
+  static const String welcome = '/';
   static const String login = '/login';
+  static const String register = '/register';
+  static const String home = '/home';
   static const String profile = '/profile';
   static const String vehicles = '/vehicles';
   static const String rides = '/rides';
@@ -28,14 +32,24 @@ class AppRoutes {
   /// Generates routes dynamically based on [RouteSettings]
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case home:
+      case welcome:
         return MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
+          builder: (_) => const WelcomeScreen(),
           settings: settings,
         );
       case login:
         return MaterialPageRoute(
           builder: (_) => const LoginScreen(),
+          settings: settings,
+        );
+      case register:
+        return MaterialPageRoute(
+          builder: (_) => const RegisterScreen(),
+          settings: settings,
+        );
+      case home:
+        return MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
           settings: settings,
         );
       case profile:

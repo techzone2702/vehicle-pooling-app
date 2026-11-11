@@ -21,7 +21,7 @@ class VehiclePoolingApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.welcome,
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
