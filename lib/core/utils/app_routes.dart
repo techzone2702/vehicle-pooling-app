@@ -4,6 +4,7 @@ import '../../features/authentication/screens/login_screen.dart';
 import '../../features/authentication/screens/register_screen.dart';
 import '../../features/authentication/screens/welcome_screen.dart';
 import '../../features/booking/screens/booking_screen.dart';
+import '../../features/booking/screens/driver_requests_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/maps/screens/map_screen.dart';
@@ -31,6 +32,7 @@ class AppRoutes {
   static const String findRide = '/find-ride';
   static const String myRides = '/my-rides';
   static const String booking = '/booking';
+  static const String driverRequests = '/driver-requests';
   static const String map = '/map';
   static const String notifications = '/notifications';
   static const String chat = '/chat';
@@ -91,6 +93,11 @@ class AppRoutes {
       case booking:
         return MaterialPageRoute(
           builder: (_) => const BookingScreen(),
+          settings: settings,
+        );
+      case driverRequests:
+        return MaterialPageRoute(
+          builder: (_) => const DriverRequestsScreen(),
           settings: settings,
         );
       case map:

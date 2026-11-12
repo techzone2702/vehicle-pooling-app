@@ -11,6 +11,11 @@ class BookingModel {
   final BookingStatus status;
   final DateTime requestedAt;
   final DateTime? respondedAt;
+  final String? passengerName;
+  final String? passengerPhone;
+  final String? source;
+  final String? destination;
+  final DateTime? departureTime;
 
   const BookingModel({
     required this.id,
@@ -21,6 +26,11 @@ class BookingModel {
     this.status = BookingStatus.pending,
     required this.requestedAt,
     this.respondedAt,
+    this.passengerName,
+    this.passengerPhone,
+    this.source,
+    this.destination,
+    this.departureTime,
   });
 
   bool get isPending => status == BookingStatus.pending;
@@ -37,6 +47,11 @@ class BookingModel {
     BookingStatus? status,
     DateTime? requestedAt,
     DateTime? respondedAt,
+    String? passengerName,
+    String? passengerPhone,
+    String? source,
+    String? destination,
+    DateTime? departureTime,
   }) {
     return BookingModel(
       id: id ?? this.id,
@@ -47,6 +62,11 @@ class BookingModel {
       status: status ?? this.status,
       requestedAt: requestedAt ?? this.requestedAt,
       respondedAt: respondedAt ?? this.respondedAt,
+      passengerName: passengerName ?? this.passengerName,
+      passengerPhone: passengerPhone ?? this.passengerPhone,
+      source: source ?? this.source,
+      destination: destination ?? this.destination,
+      departureTime: departureTime ?? this.departureTime,
     );
   }
 
@@ -60,6 +80,11 @@ class BookingModel {
       'status': status.name,
       'requested_at': requestedAt.toIso8601String(),
       'responded_at': respondedAt?.toIso8601String(),
+      'passenger_name': passengerName,
+      'passenger_phone': passengerPhone,
+      'source': source,
+      'destination': destination,
+      'departure_time': departureTime?.toIso8601String(),
     };
   }
 
@@ -79,6 +104,13 @@ class BookingModel {
           : DateTime.now(),
       respondedAt: map['responded_at'] != null
           ? DateTime.tryParse(map['responded_at'] as String)
+          : null,
+      passengerName: map['passenger_name'] as String?,
+      passengerPhone: map['passenger_phone'] as String?,
+      source: map['source'] as String?,
+      destination: map['destination'] as String?,
+      departureTime: map['departure_time'] != null
+          ? DateTime.tryParse(map['departure_time'] as String)
           : null,
     );
   }

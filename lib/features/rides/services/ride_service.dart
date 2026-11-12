@@ -39,6 +39,10 @@ abstract class RideService {
   Future<RideModel> createRide(RideModel ride);
   Future<List<RideModel>> getRidesOfferedByDriver(String driverId);
   Future<RideModel?> getRideById(String rideId);
+  Future<bool> updateAvailableSeats({
+    required String rideId,
+    required int seatsToDeduct,
+  });
 }
 
 /// Placeholder implementation of [RideService].
@@ -358,5 +362,24 @@ class PlaceholderRideService implements RideService {
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  Future<bool> updateAvailableSeats({
+    required String rideId,
+    required int seatsToDeduct,
+  }) async {
+    if (seatsToDeduct <= 0) return false;
+    final index = _mockRides.indexWhere((r) => r.id == rideId);
+    if (index == -1) return false;
+
+    final currentRide = _mockRides[index];
+    if (currentRide.availableSeats < seatsToDeduct) return false;
+
+    final updatedSeats = currentRide.availableSeats - seatsToDeduct;
+    _mockRides[index] = currentRide.copyWith(
+      availableSeats: updatedSeats >= 0 ? updatedSeats : 0,
+    );
+    return true;
   }
 }
