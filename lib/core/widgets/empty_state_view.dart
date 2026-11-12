@@ -55,7 +55,7 @@ class EmptyStateView extends StatelessWidget {
               CustomButton(
                 text: actionText!,
                 onPressed: onActionPressed,
-                width: 180,
+                width: 200,
               ),
             ],
           ],

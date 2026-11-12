@@ -19,6 +19,9 @@ class RideModel {
   final String? notes;
   final RideStatus status;
   final DateTime createdAt;
+  final String? driverName;
+  final double? driverRating;
+  final String? vehicleInfo;
 
   const RideModel({
     required this.id,
@@ -37,6 +40,9 @@ class RideModel {
     this.notes,
     this.status = RideStatus.scheduled,
     required this.createdAt,
+    this.driverName,
+    this.driverRating,
+    this.vehicleInfo,
   });
 
   /// Check whether seats are still available
@@ -59,6 +65,9 @@ class RideModel {
     String? notes,
     RideStatus? status,
     DateTime? createdAt,
+    String? driverName,
+    double? driverRating,
+    String? vehicleInfo,
   }) {
     return RideModel(
       id: id ?? this.id,
@@ -77,6 +86,9 @@ class RideModel {
       notes: notes ?? this.notes,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      driverName: driverName ?? this.driverName,
+      driverRating: driverRating ?? this.driverRating,
+      vehicleInfo: vehicleInfo ?? this.vehicleInfo,
     );
   }
 
@@ -98,6 +110,9 @@ class RideModel {
       'notes': notes,
       'status': status.name,
       'created_at': createdAt.toIso8601String(),
+      'driver_name': driverName,
+      'driver_rating': driverRating,
+      'vehicle_info': vehicleInfo,
     };
   }
 
@@ -126,6 +141,9 @@ class RideModel {
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
+      driverName: map['driver_name'] as String?,
+      driverRating: (map['driver_rating'] as num?)?.toDouble(),
+      vehicleInfo: map['vehicle_info'] as String?,
     );
   }
 }

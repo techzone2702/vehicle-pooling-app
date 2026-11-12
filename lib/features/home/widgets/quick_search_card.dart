@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/app_routes.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/custom_button.dart';
+import '../../rides/screens/find_ride_screen.dart';
 
 /// Quick Search section on the dashboard for instant route and date queries.
 class QuickSearchCard extends StatefulWidget {
@@ -20,7 +22,7 @@ class _QuickSearchCardState extends State<QuickSearchCard> {
   final _goingToController = TextEditingController(
     text: 'Whitefield Tech Park',
   );
-  String _selectedDate = 'Today, 12 Nov';
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void dispose() {
@@ -58,22 +60,8 @@ class _QuickSearchCardState extends State<QuickSearchCard> {
     );
 
     if (picked != null) {
-      const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
       setState(() {
-        _selectedDate = '${picked.day} ${months[picked.month - 1]}';
+        _selectedDate = picked;
       });
     }
   }
@@ -185,10 +173,10 @@ class _QuickSearchCardState extends State<QuickSearchCard> {
                         ),
                       ),
                       Text(
-                        _selectedDate,
+                        Formatters.formatDate(_selectedDate),
                         style: const TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
@@ -211,7 +199,15 @@ class _QuickSearchCardState extends State<QuickSearchCard> {
             text: 'Search Rides',
             icon: Icons.search_rounded,
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.findRide);
+              Navigator.pushNamed(
+                context,
+                AppRoutes.findRide,
+                arguments: FindRideArgs(
+                  source: _leavingFromController.text.trim(),
+                  destination: _goingToController.text.trim(),
+                  date: _selectedDate,
+                ),
+              );
             },
           ),
         ],

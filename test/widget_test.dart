@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vehicle_pooling_app/core/constants/app_constants.dart';
+import 'package:vehicle_pooling_app/core/utils/app_routes.dart';
 import 'package:vehicle_pooling_app/features/home/screens/home_screen.dart';
+import 'package:vehicle_pooling_app/features/rides/screens/find_ride_screen.dart';
 import 'package:vehicle_pooling_app/features/rides/screens/offer_ride_screen.dart';
+import 'package:vehicle_pooling_app/features/rides/services/ride_service.dart';
+import 'package:vehicle_pooling_app/features/rides/widgets/ride_result_card.dart';
 import 'package:vehicle_pooling_app/main.dart';
 
 void main() {
@@ -285,4 +289,308 @@ void main() {
       expect(find.text('Back to Dashboard'), findsOneWidget);
     },
   );
+
+  group('PlaceholderRideService Tests', () {
+    final service = PlaceholderRideService.instance;
+
+    setUp(() {
+      service.resetMockRides();
+    });
+
+    test(
+      'Valid search returns matching rides sorted by earliest departure time',
+      () async {
+        final now = DateTime.now();
+        final results = await service.searchRides(
+          source: 'Koramangala',
+          destination: 'Whitefield',
+          date: DateTime(now.year, now.month, now.day),
+        );
+
+        expect(results.isNotEmpty, isTrue);
+        // Verify departure times are sorted ascending
+        for (int i = 0; i < results.length - 1; i++) {
+          expect(
+            results[i].departureTime.isBefore(results[i + 1].departureTime) ||
+                results[i].departureTime.isAtSameMomentAs(
+                  results[i + 1].departureTime,
+                ),
+            isTrue,
+          );
+        }
+      },
+    );
+
+    test('Case-insensitive and partial location matching works', () async {
+      final now = DateTime.now();
+      final results = await service.searchRides(
+        source: 'kORAMANGALA',
+        destination: 'wHITEFIELD',
+        date: DateTime(now.year, now.month, now.day),
+      );
+
+      expect(results.any((r) => r.source.contains('Koramangala')), isTrue);
+      expect(results.any((r) => r.destination.contains('Whitefield')), isTrue);
+    });
+
+    test('Filters rides strictly by selected travel date', () async {
+      final now = DateTime.now();
+      final tomorrow = now.add(const Duration(days: 1));
+
+      final todayResults = await service.searchRides(
+        source: 'Koramangala',
+        destination: 'Whitefield',
+        date: DateTime(now.year, now.month, now.day),
+      );
+      final tomorrowResults = await service.searchRides(
+        source: 'Koramangala',
+        destination: 'Whitefield',
+        date: DateTime(tomorrow.year, tomorrow.month, tomorrow.day),
+      );
+
+      for (final r in todayResults) {
+        expect(r.departureTime.day, equals(now.day));
+      }
+      for (final r in tomorrowResults) {
+        expect(r.departureTime.day, equals(tomorrow.day));
+      }
+    });
+
+    test('Excludes fully booked rides (availableSeats == 0)', () async {
+      final now = DateTime.now();
+      final detailed = await service.searchRidesDetailed(
+        source: 'HSR Layout',
+        destination: 'Manyata',
+        date: DateTime(now.year, now.month, now.day),
+      );
+
+      expect(detailed.rides.isEmpty, isTrue);
+      expect(
+        detailed.emptyReason,
+        equals(RideSearchEmptyReason.allRidesFullyBooked),
+      );
+    });
+
+    test(
+      "Excludes current user's own offered rides (driverId == u_1)",
+      () async {
+        final now = DateTime.now();
+        final results = await service.searchRides(
+          source: 'Downtown Metro Station',
+          destination: 'Tech Park Campus',
+          date: DateTime(now.year, now.month, now.day),
+          currentUserId: 'u_1',
+        );
+
+        expect(results.any((r) => r.driverId == 'u_1'), isFalse);
+      },
+    );
+
+    test(
+      'Correctly reports noMatchingRoute when no rides exist for route',
+      () async {
+        final now = DateTime.now();
+        final detailed = await service.searchRidesDetailed(
+          source: 'Jaipur Junction',
+          destination: 'Delhi Aerocity',
+          date: DateTime(now.year, now.month, now.day),
+        );
+
+        expect(detailed.rides.isEmpty, isTrue);
+        expect(
+          detailed.emptyReason,
+          equals(RideSearchEmptyReason.noMatchingRoute),
+        );
+      },
+    );
+  });
+
+  group('FindRideScreen Widget Tests', () {
+    setUp(() {
+      FindRideScreen.lastSearchArgs = null;
+      FindRideScreen.lastSearchResult = null;
+      PlaceholderRideService.instance.resetMockRides();
+    });
+
+    testWidgets(
+      'FindRideScreen renders initial search form, discovery banner, and swap button',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(const MaterialApp(home: FindRideScreen()));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Find a Ride'), findsOneWidget);
+        expect(find.text('Search Available Rides'), findsOneWidget);
+        expect(find.text('Leaving From'), findsOneWidget);
+        expect(find.text('Going To'), findsOneWidget);
+        expect(find.byIcon(Icons.swap_vert_rounded), findsOneWidget);
+        expect(find.text('Travel Date'), findsOneWidget);
+        expect(
+          find.widgetWithText(ElevatedButton, 'Search Rides'),
+          findsOneWidget,
+        );
+        expect(find.text('Find Your Next Commute'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'FindRideScreen validates empty fields and identical locations',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(const MaterialApp(home: FindRideScreen()));
+        await tester.pumpAndSettle();
+
+        final searchButton = find.widgetWithText(
+          ElevatedButton,
+          'Search Rides',
+        );
+        await tester.ensureVisible(searchButton);
+        await tester.tap(searchButton);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Please enter departure location'), findsOneWidget);
+        expect(find.text('Please enter destination'), findsOneWidget);
+
+        // Enter identical locations
+        final textFields = find.byType(TextFormField);
+        await tester.enterText(textFields.at(0), 'Indiranagar');
+        await tester.enterText(textFields.at(1), 'Indiranagar');
+
+        await tester.ensureVisible(searchButton);
+        await tester.tap(searchButton);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Source and destination cannot be identical'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('Swap button interchanges source and destination text', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: FindRideScreen()));
+      await tester.pumpAndSettle();
+
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'Koramangala');
+      await tester.enterText(textFields.at(1), 'Whitefield');
+      await tester.pumpAndSettle();
+
+      final swapButton = find.byIcon(Icons.swap_vert_rounded);
+      await tester.tap(swapButton);
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextFormField, 'Whitefield'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Koramangala'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Submits valid search and renders RideResultCard with driver and vehicle info',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(const MaterialApp(home: FindRideScreen()));
+        await tester.pumpAndSettle();
+
+        final textFields = find.byType(TextFormField);
+        await tester.enterText(textFields.at(0), 'Koramangala');
+        await tester.enterText(textFields.at(1), 'Whitefield');
+
+        final searchButton = find.widgetWithText(
+          ElevatedButton,
+          'Search Rides',
+        );
+        await tester.ensureVisible(searchButton);
+        await tester.tap(searchButton);
+        await tester.pumpAndSettle();
+
+        // Verify results count and RideResultCard rendering
+        expect(find.byType(RideResultCard), findsWidgets);
+        expect(find.text('Priya Singh'), findsWidgets);
+        expect(find.text('Verified Driver'), findsWidgets);
+        expect(find.text('View Details'), findsWidgets);
+
+        // Tap View Details on the first ride result
+        final viewDetailsButton = find
+            .widgetWithText(OutlinedButton, 'View Details')
+            .first;
+        await tester.ensureVisible(viewDetailsButton);
+        await tester.tap(viewDetailsButton);
+        await tester.pumpAndSettle();
+
+        // Verify bottom sheet modal opened
+        expect(find.text('Ride Details'), findsOneWidget);
+        expect(find.text('Pickup Point'), findsOneWidget);
+        expect(find.text('Drop-off Destination'), findsOneWidget);
+        expect(find.text('Vehicle Specifications'), findsOneWidget);
+        expect(find.text('Close'), findsOneWidget);
+
+        // Close bottom sheet
+        final closeFinder = find.widgetWithText(OutlinedButton, 'Close');
+        await tester.ensureVisible(closeFinder);
+        await tester.tap(closeFinder);
+        await tester.pumpAndSettle();
+        expect(find.text('Ride Details'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Displays friendly empty state when no matching route is found',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(const MaterialApp(home: FindRideScreen()));
+        await tester.pumpAndSettle();
+
+        final textFields = find.byType(TextFormField);
+        await tester.enterText(textFields.at(0), 'Mumbai Central');
+        await tester.enterText(textFields.at(1), 'Pune Station');
+
+        final searchButton = find.widgetWithText(
+          ElevatedButton,
+          'Search Rides',
+        );
+        await tester.ensureVisible(searchButton);
+        await tester.tap(searchButton);
+        await tester.pumpAndSettle();
+
+        expect(find.text('No Matching Rides Found'), findsOneWidget);
+        expect(find.text('Modify Search'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'FindRideScreen automatically executes search when launched with FindRideArgs',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            onGenerateRoute: (settings) {
+              return MaterialPageRoute(
+                settings: RouteSettings(
+                  name: AppRoutes.findRide,
+                  arguments: FindRideArgs(
+                    source: 'Indiranagar',
+                    destination: 'Electronic City',
+                    date: DateTime.now(),
+                  ),
+                ),
+                builder: (_) => const FindRideScreen(),
+              );
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify textfields auto-filled
+        expect(
+          find.widgetWithText(TextFormField, 'Indiranagar'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(TextFormField, 'Electronic City'),
+          findsOneWidget,
+        );
+
+        // Verify auto-executed results
+        expect(find.byType(RideResultCard), findsWidgets);
+        expect(find.text('Ananya Roy'), findsOneWidget);
+      },
+    );
+  });
 }
